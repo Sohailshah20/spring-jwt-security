@@ -1,4 +1,4 @@
-package com.example.springsecurity.config;
+package com.example.springsecurity.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +19,7 @@ import java.util.function.Function;
 public class JWTService {
     private static final String SECRET_KEY = "77217A25432A462D4A614E645267556B586E3272357538782F413F4428472B4B";
 
-    public String generateToken(
+    public String generateAccessToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails
     ) {
@@ -27,13 +28,31 @@ public class JWTService {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 24 * 60))
+                .setExpiration(new Date(System.currentTimeMillis() + Duration.ofMinutes(1).toMillis()))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+    public String generateRefreshToken(
+            Map<String, Object> extraClaims,
+            UserDetails userDetails
+    ) {
+        return Jwts
+                .builder()
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + Duration.ofDays(1).toMillis()))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public Map<String,String> generateTokens(UserDetails userDetails) {
+        String refreshToken = generateRefreshToken(new HashMap<>(), userDetails);
+        String accessToken = generateAccessToken(new HashMap<>(), userDetails);
+        Map<String,String> map =  new HashMap<>();
+        map.put("accessToken",accessToken);
+        map.put("refreshToken",refreshToken);
+        return map;
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails){

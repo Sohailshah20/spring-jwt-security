@@ -25,10 +25,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         return http
                 .csrf().disable()
-                .authorizeHttpRequests()
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
+                .authorizeHttpRequests(req ->
+                        req.requestMatchers("/api/v1/auth/**").permitAll()
+                )
+                .authorizeHttpRequests( req ->
+                        req.anyRequest().authenticated()
+                )
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()

@@ -1,36 +1,44 @@
 package com.example.springsecurity.controller;
 
-import com.example.springsecurity.model.AuthResponse;
 import com.example.springsecurity.model.AuthRequest;
+import com.example.springsecurity.model.AuthResponse;
 import com.example.springsecurity.model.RegisterRequest;
-import com.example.springsecurity.service.AuthenticationService;
+import com.example.springsecurity.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthenticationController {
 
-    private final AuthenticationService authenticationService;
+    private final AuthService authService;
 
-    public AuthenticationController(AuthenticationService authenticationService) {
-        this.authenticationService = authenticationService;
+    public AuthenticationController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(
             @RequestBody RegisterRequest registerRequest
     ) {
-        return ResponseEntity.ok(authenticationService.register(registerRequest));
+        return authService.register(registerRequest);
     }
 
     @PostMapping("/authenticate")
     public ResponseEntity<AuthResponse> authenticate(
             @RequestBody AuthRequest authRequest
     ) {
-        return ResponseEntity.ok(authenticationService.authenticate(authRequest));
+        return ResponseEntity.ok(authService.authenticate(authRequest));
     }
+
+    @GetMapping("/refresh")
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        authService.refreshToken(request,response);
+    }
+
+
 }
